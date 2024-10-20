@@ -1,6 +1,8 @@
 # ani-cursor.js
 一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具 / A tool that allows you to use ani files on your website to create an animated cursor.
 
+~~卑微求star~~
+
 ## 开始使用 / Getting Started
 
 你可以使用 npm 将其安装到你的项目中 / You can use npm to install it into your project.
