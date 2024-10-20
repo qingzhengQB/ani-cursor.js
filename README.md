@@ -2,6 +2,7 @@
 一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具 / A tool that allows you to use ani files on your website to create an animated cursor.
 
 ~~卑微求star~~
+![Picture](blob:https://github.com/61e20354-40ca-4039-86d3-d273ee1adde5)
 
 ## 开始使用 / Getting Started
 
