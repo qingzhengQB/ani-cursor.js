@@ -1,2 +1,2 @@
 # ani-cursor.js
-A script that allow you to use ani file in your website
+A tool that allow you to use ani files in your website to create a animation cursor
