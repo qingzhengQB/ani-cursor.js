@@ -1,0 +1,28 @@
+{
+  "name": "ani-cursor.js",
+  "version": "1.0.0",
+  "description": "A tool that allow you to use ani files in your website to create a animation cursor",
+  "main": "ani-cursor.js",
+  "scripts": {
+    "test": "test.js",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qingzhengQB/ani-cursor.js.git"
+  },
+  "keywords": [
+    "ani",
+    "cursor",
+    "ani-file"
+  ],
+  "author": "youziyv",
+  "license": "Apache License 2.0",
+  "bugs": {
+    "url": "https://github.com/qingzhengQB/ani-cursor.js/issues"
+  },
+  "homepage": "https://github.com/qingzhengQB/ani-cursor.js#readme",
+  "dependencies": {
+    "riff-file": "^1.0.3"
+  }
+}
