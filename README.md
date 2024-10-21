@@ -14,7 +14,7 @@ npm install ani-cursor
 或者在 DOM 头中使用 script 标签来使用该工具 / Or, just use a script tag in the DOM head to use the tool.
 
 ```html
-<script src="dist/ani-cursor.js"></script>
+<script src="dist/ani-cursor.bundle.js"></script>
 ```
 ## 如何使用 / How to Use
 使用这个工具非常简单。你只需要使用函数 setANICursor 来将你的 ani 文件应用到你的网页中， 这个函数仅会修改 DOM 头，并不涉及 DOM 元素操作，所以你可以在任何位置使用它，不用担心你要设置的动态指针的元素是否已经挂载。/ There are several easy ways to use your ani files. You can use the function setANICursor to apply your ani file, This function only modifies the DOM head and does not involve DOM element manipulation, so you can use it anywhere.
