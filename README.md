@@ -64,6 +64,10 @@ let textAbleGroup = [
 setANICursorWithGroupElement(textAbleGroup, "/ani/TextSelect.ani");
 ```
 
+### Vue 使用例
+
+预览网页由 vue 编写，网页仓库的 markdown 有使用例：https://github.com/qingzhengQB/ani-cursor-preview
+
 ## 更多 API / More APIs
 
 ```javascript
