@@ -10,7 +10,7 @@
 你可以使用 npm 将其安装到你的项目中 / You can use npm to install it into your project.
 
 ```
-npm install ani-cursor
+npm install ani-cursor.js
 ```
 
 或者在 DOM 头中使用 script 标签来使用该工具 / Or, just use a script tag in the DOM head to use the tool.
