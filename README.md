@@ -5,6 +5,8 @@
 ~~卑微求 star~~
 ![Picture](https://raw.githubusercontent.com/qingzhengQB/ani-cursor.js/refs/heads/main/ani_cover.gif)
 
+预览 / Preview: [](https://qingzhengqb.github.io/ani-cursor-preview/)
+
 ## 开始使用 / Getting Started
 
 你可以使用 npm 将其安装到你的项目中 / You can use npm to install it into your project.
