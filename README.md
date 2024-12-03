@@ -7,7 +7,7 @@
 
 预览 / Preview: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
 
-## 开始使用 / Getting Started
+## 引入库 / Getting Started
 
 你可以使用 npm 将其安装到你的项目中 / You can use npm to install it into your project.
 
