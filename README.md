@@ -5,7 +5,7 @@
 ~~卑微求 star~~
 ![Picture](https://raw.githubusercontent.com/qingzhengQB/ani-cursor.js/refs/heads/main/ani_cover.gif)
 
-预览 / Preview: [](https://qingzhengqb.github.io/ani-cursor-preview/)
+预览 / Preview: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
 
 ## 开始使用 / Getting Started
 
