@@ -1,6 +1,6 @@
 # ani-cursor.js
 
-一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具 / A tool that allows you to use ani files on your website to create an animated cursor.
+一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具 / A tool that allows you to use ani files on your website to create an dynamic animation cursor.
 
 ~~卑微求 star~~
 ![Picture](https://raw.githubusercontent.com/qingzhengQB/ani-cursor.js/refs/heads/main/ani_cover.gif)
