@@ -89,7 +89,7 @@ function LoadANICursorPromise(
 ) {}
 ```
 
-你可以使用它来加载一个 ani 文件。运行该函数后，会返回一个等待 then 运行的 Promise，并为 then 中的 resolve 变量赋值为一个包含相关加载信息的对象 / You can use it to load an ani file. After running this function, it will return a Promise that waits for then to be executed, and assigns a value to the resolve variable in then as an object containing relevant loading information。
+你可以使用它来加载一个 ani 文件。运行该函数后，会返回一个等待 then 运行的 Promise，并为 then 中的 resolve 变量赋值为一个包含相关加载信息的对象 / You can use it to load an ani file. After running this function, it will return a Promise that waits for then to be executed, and assigns a value to the resolve variable in then as an object containing relevant loading information.
 
 ```
 {
@@ -112,4 +112,4 @@ function setLoadedCursorToElement(elementSelector, loadedCursorPromise) {}
 function setLoadedCursorDefault(loadedCursorPromise) {}
 ```
 
-该函数仅会将动画设置到根据 ani 文件 URL 生成的类名下，不会做其他额外操作 / This function only sets the animation to the class generated based on the ani file URL and does not perform any additional operations.
+该函数仅会将动画设置到根据 ani 文件 URL 生成的类名下，并返回对应类名，不会做其他额外操作，方便实现手动选择元素并挂载返回的类名来实现更加定制化的鼠标动画挂载 / This function only applies the animation to a class name generated from the ani file URL and returns the corresponding class name. It does not perform any additional operations, making it convenient to manually select elements and attach the returned class name for more customized mouse animation mounting.
