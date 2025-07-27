@@ -1,6 +1,6 @@
 {
   "name": "ani-cursor.js",
-  "version": "1.0.1 ",
+  "version": "1.0.2",
   "description": "A tool that allow you to use ani files in your website to create a animation cursor",
   "main": "ani-cursor.js",
   "scripts": {
