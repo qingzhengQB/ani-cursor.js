@@ -5,7 +5,7 @@
 ~~卑微求 star~~
 ![Picture](https://raw.githubusercontent.com/qingzhengQB/ani-cursor.js/refs/heads/main/ani_cover.gif)
 
-预览 / Preview: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
+极简预览 / Preview: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
 
 ## 引入库 / Getting Started
 
@@ -16,6 +16,16 @@ npm install ani-cursor.js
 ```
 
 或者在 DOM 头中使用 script 标签来使用该工具 / Or, just use a script tag in the DOM head to use the tool.
+
+- 通过 CDN / Use CDN
+
+```html
+<script src="
+https://cdn.jsdelivr.net/npm/ani-cursor.js@1.0.0/dist/ani-cursor.bundle.min.js
+"></script>
+```
+
+- 直接下载 dist/ani-cursor.bundle.js 并放入项目中，将 `src` 属性改为下载文件在项目中的路径 / Directly download dist/ani - cursor.bundle.js and place it in the project. Then change the `src` attribute to the path of the downloaded file in the project.
 
 ```html
 <script src="dist/ani-cursor.bundle.js"></script>

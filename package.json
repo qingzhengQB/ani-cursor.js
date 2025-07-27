@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/qingzhengQB/ani-cursor.js#readme",
   "dependencies": {
+    "buffer": "^6.0.3",
     "riff-file": "^1.0.3"
   }
 }
