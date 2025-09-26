@@ -15,21 +15,45 @@
 npm install ani-cursor.js
 ```
 
-或者在 DOM 头中使用 script 标签来使用该工具 / Or, just use a script tag in the DOM head to use the tool.
+对于不能方便使用 npm 的项目（例如 Wordpress、纯原生 HTML 等情况），考虑在 DOM 头中使用 script 标签来引用该工具 / For projects where using npm is not convenient (such as WordPress or pure native HTML), consider including this tool in the document head with a <script> tag.
+
+- 直接下载打包好的文件 dist/ani-cursor.bundle.js 并放入项目中，使用以下 script 标签加载 / Directly download the bundled file dist/ani-cursor.bundle.js and place it into your project, then load it with a <script> tag.
+
+```html
+<script>
+  const script = document.createElement("script");
+  script.src = "path/to/ani-cursor.bundle.js";
+  script.onload = () => {
+    // 在这里执行调用逻辑，使用 window["ani-cursor.js"] 来引用库函数，例如： / Execute the invocation logic here, using window["ani-cursor.js"] to reference the library functions, for example:
+    if (window["ani-cursor.js"] && typeof window["ani-cursor.js"].setANICursor === "function") {
+      window["ani-cursor.js"].setANICursor("body", "path/to/cursor.ani");
+    } else {
+      console.error("找不到 setANICursor，检查 ani-cursor.bundle.js 是否被正确引用");
+    }
+  };
+  document.head.appendChild(script);
+</script>
+```
 
 - 通过 CDN / Use CDN
 
 ```html
-<script src="
-https://cdn.jsdelivr.net/npm/ani-cursor.js@1.0.0/dist/ani-cursor.bundle.min.js
-"></script>
+<script>
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/ani-cursor.js@1.0.2/dist/ani-cursor.bundle.min.js";
+  script.onload = () => {
+    // 在这里执行调用逻辑，使用 window["ani-cursor.js"] 来引用库函数，例如： / Execute the invocation logic here, using window["ani-cursor.js"] to reference the library functions, for example:
+    if (window["ani-cursor.js"] && typeof window["ani-cursor.js"].setANICursor === "function") {
+      window["ani-cursor.js"].setANICursor("body", "path/to/cursor.ani");
+    } else {
+      console.error("找不到 setANICursor，检查 ani-cursor.bundle.js 是否被正确引用");
+    }
+  };
+  document.head.appendChild(script);
+</script>
 ```
 
-- 直接下载 dist/ani-cursor.bundle.js 并放入项目中，将 `src` 属性改为下载文件在项目中的路径 / Directly download dist/ani - cursor.bundle.js and place it in the project. Then change the `src` attribute to the path of the downloaded file in the project.
-
-```html
-<script src="dist/ani-cursor.bundle.js"></script>
-```
+引入更新的相关 issue：https://github.com/qingzhengQB/ani-cursor.js/issues/4
 
 ## 如何使用 / How to Use
 
