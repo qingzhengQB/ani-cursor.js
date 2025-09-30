@@ -17,7 +17,7 @@ npm install ani-cursor.js
 
 对于不能方便使用 npm 的项目（例如 Wordpress、纯原生 HTML 等情况），考虑在 DOM 头中使用 script 标签来引用该工具 / For projects where using npm is not convenient (such as WordPress or pure native HTML), consider including this tool in the document head with a <script> tag.
 
-- 直接下载打包好的文件 dist/ani-cursor.bundle.js 并放入项目中，使用以下 script 标签加载 / Directly download the bundled file dist/ani-cursor.bundle.js and place it into your project, then load it with a <script> tag.
+- 直接下载仓库中已经打包好的文件 [dist/ani-cursor.bundle.js](https://github.com/qingzhengQB/ani-cursor.js/tree/master/dist) 并放入项目中，使用以下 script 标签加载 / Directly download the bundled file dist/ani-cursor.bundle.js and place it into your project, then load it with a <script> tag.
 
 ```html
 <script>
