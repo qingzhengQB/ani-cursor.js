@@ -7,6 +7,8 @@
 
 极简预览 / Preview: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
 
+一个用了这个库且效果还不错但不能保证随时能访问的博客：[预览](https://blog.qzqb.cc/)
+
 ## 引入库 / Getting Started
 
 你可以使用 npm 将其安装到你的项目中 / You can use npm to install it into your project.
