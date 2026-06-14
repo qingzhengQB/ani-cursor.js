@@ -18,7 +18,7 @@ npm install ani-cursor.js
 或者在 DOM 头中使用 script 标签来使用该工具 / Or, just use a script tag in the DOM head to use the tool.
 
 ```html
-<script src="dist/ani-cursor.bundle.js"></script>
+<script src="dist/ani-cursor.umd.min.js"></script>
 ```
 
 ## 如何使用 / How to Use

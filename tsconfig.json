@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "ES2020",
     "module": "ESNext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2020", "DOM"],
+    "types": ["node"],
 
-    "declaration": true,
-    "declarationMap": false,
-
-    "strict": true, 
+    "strict": true,
     "skipLibCheck": true,
-  }
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
 }

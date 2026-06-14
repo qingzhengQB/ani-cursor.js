@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { RIFFFile } from "riff-file";
+import * as riffFile from "riff-file";
 
 interface FrameInfo {
   frameIndex: number;
@@ -14,6 +14,15 @@ interface ANIInfo {
 }
 
 // 原引用的 riff-file 包没有类型定义文件，这里补全类型定义
+interface RIFFFileShape {
+  setSignature(buffer: Buffer): void;
+  findChunk(chunkName: string): RIFFChunk | undefined;
+}
+
+interface RIFFFileModule {
+  RIFFFile: new () => RIFFFileShape;
+}
+
 interface RIFFChunk {
   chunkData?: any;
   chunkSize?: number;
@@ -92,6 +101,7 @@ class ANIMouse {
           };
 
           const buffer = Buffer.from(arrayBuffer);
+          const { RIFFFile } = riffFile as RIFFFileModule;
           const riff = new RIFFFile();
           riff.setSignature(buffer);
           const anihChunk = riff.findChunk("anih") as RIFFChunk;
