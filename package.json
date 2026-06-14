@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A tool that allow you to use ani files in your website to create a animation cursor",
   "main": "ani-cursor.js",
+  "types": "ani-cursor.d.ts",
   "scripts": {
     "test": "test.js",
     "build": "webpack"

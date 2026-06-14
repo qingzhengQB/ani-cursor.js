@@ -1,8 +1,32 @@
 import { Buffer } from "buffer";
 import { RIFFFile } from "riff-file";
+
+interface FrameInfo {
+  frameIndex: number;
+  framDuration: number;
+}
+
+interface ANIInfo {
+  KeyFrameContent: string;
+  aniURLRegexClassName: string;
+  keyframesName: string;
+  totalRoundTime: number;
+}
+
+// 原引用的 riff-file 包没有类型定义文件，这里补全类型定义
+interface RIFFChunk {
+  chunkData?: any;
+  chunkSize?: number;
+  subChunks?: Array<{
+    chunkData: any;
+    chunkSize: number;
+  }>;
+}
+
 class ANIMouse {
-  LoadedANIs = [];
-  URLPathReg = /[^a-zA-Z0-9-]+/g;
+  private LoadedANIs: ANIInfo[] = [];
+  private URLPathReg: RegExp = /[^a-zA-Z0-9-]+/g;
+
   constructor() {
     this.LoadANICursorPromise = this.LoadANICursorPromise.bind(this);
     this.setLoadedCursorToElement = this.setLoadedCursorToElement.bind(this);
@@ -11,55 +35,83 @@ class ANIMouse {
     this.setANICursorWithGroupElement =
       this.setANICursorWithGroupElement.bind(this);
   }
-  LoadANICursorPromise(aniURL, cursorType = "auto", width = 32, height = 32) {
+
+  public LoadANICursorPromise(
+    aniURL: string,
+    cursorType: string = "auto",
+    width: number = 32,
+    height: number = 32
+  ): Promise<ANIInfo> {
     return new Promise((topResolve) => {
       const aniURLRegexClassName =
         "cursor-animation-" + aniURL.replace(this.URLPathReg, "-");
-      this.LoadedANIs.forEach((aniInfo) => {
+
+      for (const aniInfo of this.LoadedANIs) {
         if (aniInfo.aniURLRegexClassName === aniURLRegexClassName) {
           topResolve(aniInfo);
+          return;
         }
-      });
+      }
+
       fetch(aniURL)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
           }
-          return response.arrayBuffer(); // 读取为 ArrayBuffer
+          return response.arrayBuffer();
         })
         .then((arrayBuffer) => {
-          function resizeIco(blobUrl, newWidth, newHeight) {
+          const resizeIco = (
+            blobUrl: string,
+            newWidth: number,
+            newHeight: number
+          ): Promise<string> => {
             return new Promise((resolve) => {
               const img = new Image();
               const canvas = document.createElement("canvas");
               const ctx = canvas.getContext("2d");
+
+              if (!ctx) {
+                throw new Error("Failed to get canvas context");
+              }
 
               img.onload = () => {
                 canvas.width = newWidth;
                 canvas.height = newHeight;
                 ctx.drawImage(img, 0, 0, newWidth, newHeight);
                 canvas.toBlob((blob) => {
+                  if (!blob) {
+                    throw new Error("Failed to create blob");
+                  }
                   const url = URL.createObjectURL(blob);
                   resolve(url);
                 }, "image/x-icon");
               };
-              img.src = blobUrl; // 触发加载
+              img.src = blobUrl;
             });
-          }
+          };
+
           const buffer = Buffer.from(arrayBuffer);
-          let riff = new RIFFFile();
+          const riff = new RIFFFile();
           riff.setSignature(buffer);
-          const startIndex = riff.findChunk("anih").chunkData.start;
+          const anihChunk = riff.findChunk("anih") as RIFFChunk;
+          const startIndex = anihChunk.chunkData!.start;
           const view = new DataView(arrayBuffer);
-          const frameNum = view.getUint32(startIndex + 1 * 4, true), // 帧总数
-            cursorPlayOrderNum = view.getUint32(startIndex + 2 * 4, true), // 播放帧数
-            frameDurationInHead = view.getUint32(startIndex + 7 * 4, true); // 帧间隔
-          const frameInfo = [],
-            frameURLs = [];
-          if (riff.findChunk("seq")) {
-            let seqStart = riff.findChunk("seq").chunkData.start;
-            if (riff.findChunk("rate")) {
-              let rateStart = riff.findChunk("rate").chunkData.start;
+
+          const frameNum = view.getUint32(startIndex + 1 * 4, true);
+          const cursorPlayOrderNum = view.getUint32(startIndex + 2 * 4, true);
+          const frameDurationInHead = view.getUint32(startIndex + 7 * 4, true);
+
+          const frameInfo: FrameInfo[] = [];
+          const frameURLs: string[] = [];
+
+          const seqChunk = riff.findChunk("seq") as RIFFChunk;
+          if (seqChunk) {
+            const seqStart = seqChunk.chunkData!.start;
+
+            const rateChunk = riff.findChunk("rate") as RIFFChunk;
+            if (rateChunk) {
+              const rateStart = rateChunk.chunkData!.start;
               for (let i = 0; i < cursorPlayOrderNum; i++) {
                 frameInfo.push({
                   frameIndex: view.getUint32(seqStart + i * 4, true),
@@ -83,21 +135,22 @@ class ANIMouse {
               });
             }
           }
-          const ResizeIconGroup = [];
+
+          const ResizeIconGroup: Promise<{ index: number; url: string }>[] = [];
+          const listChunk = riff.findChunk("LIST") as RIFFChunk;
           for (let i = 0; i < cursorPlayOrderNum; i++) {
             const icourl = URL.createObjectURL(
               new Blob(
                 [
                   new Uint8Array(
                     arrayBuffer,
-                    riff.findChunk("LIST").subChunks[i].chunkData.start,
-                    riff.findChunk("LIST").subChunks[i].chunkSize
+                    listChunk.subChunks![i].chunkData.start,
+                    listChunk.subChunks![i].chunkSize
                   ),
                 ],
                 { type: "image/x-icon" }
               )
             );
-            // 这里推入的是带索引的 Promise，防止因为加载时间原因导致帧数据插入错位
             ResizeIconGroup.push(
               resizeIco(icourl, width, height).then((resizedUrl) => ({
                 index: i,
@@ -105,40 +158,53 @@ class ANIMouse {
               }))
             );
           }
+
           Promise.all(ResizeIconGroup).then((results) => {
             results.forEach((result) => {
               frameURLs[result.index] = result.url;
             });
+
             let totalRoundTime = 0;
-            function generateFrameAnimation() {
-              let styleContent = "",
-                pos = 0;
-              frameInfo.forEach((frame, index) => {
+
+            function generateFrameAnimation(): string {
+              let styleContent = "";
+              let pos = 0;
+
+              frameInfo.forEach((frame) => {
                 totalRoundTime += frame.framDuration;
               });
-              frameInfo.forEach((frame, index) => {
+
+              frameInfo.forEach((frame) => {
                 styleContent += `${pos}% { cursor: url(${
                   frameURLs[frame.frameIndex]
                 }),${cursorType};}\n`;
                 pos += (frame.framDuration / totalRoundTime) * 100;
               });
+
               return styleContent;
             }
-            let keyframesName = aniURLRegexClassName + "-keyframes";
-            let KeyFrameContent = `@keyframes ${keyframesName}{ ${generateFrameAnimation()} }`;
-            const ANIInfo = {
+
+            const keyframesName = `${aniURLRegexClassName}-keyframes`;
+            const KeyFrameContent = `@keyframes ${keyframesName} { ${generateFrameAnimation()} }`;
+
+            const ANIInfo: ANIInfo = {
               KeyFrameContent,
               aniURLRegexClassName,
               keyframesName,
               totalRoundTime,
             };
+
             this.LoadedANIs.push(ANIInfo);
             topResolve(ANIInfo);
           });
         });
     });
   }
-  setLoadedCursorToElement(elementSelector, loadedCursorPromise) {
+
+  public setLoadedCursorToElement(
+    elementSelector: string,
+    loadedCursorPromise: Promise<ANIInfo>
+  ): void {
     loadedCursorPromise.then(
       ({
         KeyFrameContent,
@@ -149,14 +215,17 @@ class ANIMouse {
         const styleContent = `${KeyFrameContent}
           ${elementSelector} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }
           .${aniURLRegexClassName} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }`;
+
         const style = document.createElement("style");
         style.innerHTML = styleContent;
         document.head.appendChild(style);
       }
     );
   }
-  setLoadedCursorDefault(loadedCursorPromise) {
+
+  public setLoadedCursorDefault(loadedCursorPromise: Promise<ANIInfo>): string {
     let defaultClass = "";
+
     loadedCursorPromise.then(
       ({
         KeyFrameContent,
@@ -166,35 +235,40 @@ class ANIMouse {
       }) => {
         const styleContent = `${KeyFrameContent}
           .${aniURLRegexClassName} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }`;
+
         const style = document.createElement("style");
         style.innerHTML = styleContent;
         document.head.appendChild(style);
+
         defaultClass = aniURLRegexClassName;
       }
     );
+
     return defaultClass;
   }
-  setANICursor(
-    elementSelector,
-    aniURL,
-    cursorType = "auto",
-    width = 32,
-    height = 32
-  ) {
-    setLoadedCursorToElement(
+
+  public setANICursor(
+    elementSelector: string,
+    aniURL: string,
+    cursorType: string = "auto",
+    width: number = 32,
+    height: number = 32
+  ): void {
+    this.setLoadedCursorToElement(
       elementSelector,
       this.LoadANICursorPromise(aniURL, cursorType, width, height)
     );
   }
-  setANICursorWithGroupElement(
-    elementSelectorGroup,
-    aniURL,
-    cursorType = "auto",
-    width = 32,
-    height = 32
-  ) {
-    let allElements = elementSelectorGroup.join(",");
-    setANICursor(allElements, aniURL, cursorType, width, height);
+
+  public setANICursorWithGroupElement(
+    elementSelectorGroup: string[],
+    aniURL: string,
+    cursorType: string = "auto",
+    width: number = 32,
+    height: number = 32
+  ): void {
+    const allElements = elementSelectorGroup.join(",");
+    this.setANICursor(allElements, aniURL, cursorType, width, height);
   }
 }
 
@@ -203,8 +277,8 @@ const instance = new ANIMouse();
 export const {
   LoadANICursorPromise,
   setLoadedCursorToElement,
-  setANICursor,
   setLoadedCursorDefault,
+  setANICursor,
   setANICursorWithGroupElement,
 } = instance;
 
