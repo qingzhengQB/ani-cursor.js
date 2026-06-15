@@ -3427,13 +3427,18 @@
     RIFFFile: RIFFFile
   });
 
+  const cursorRuleBuilder = (url, hotspotX, hotspotY, cursorType = "auto") => {
+      if (hotspotX !== undefined && hotspotY !== undefined) {
+          return `url(${url}) ${hotspotX} ${hotspotY}, ${cursorType}`;
+      }
+      return `url(${url}), ${cursorType}`;
+  };
   class ANIMouse {
       constructor() {
           this.LoadedANIs = [];
           this.URLPathReg = /[^a-zA-Z0-9-]+/g;
           this.LoadANICursorPromise = this.LoadANICursorPromise.bind(this);
           this.setLoadedCursorToElement = this.setLoadedCursorToElement.bind(this);
-          this.setLoadedCursorDefault = this.setLoadedCursorDefault.bind(this);
           this.setANICursor = this.setANICursor.bind(this);
           this.setANICursorWithGroupElement =
               this.setANICursorWithGroupElement.bind(this);
@@ -3465,8 +3470,8 @@
               },
           };
       }
-      LoadANICursorPromise(aniURL, cursorType = "auto", width = 32, height = 32) {
-          return new Promise((topResolve) => {
+      LoadANICursorPromise(aniURL, cursorType = "auto", width = 32, height = 32, hotspotX, hotspotY) {
+          return new Promise((topResolve, topReject) => {
               const aniURLRegexClassName = "cursor-animation-" + aniURL.replace(this.URLPathReg, "-");
               for (const aniInfo of this.LoadedANIs) {
                   if (aniInfo.aniURLRegexClassName === aniURLRegexClassName) {
@@ -3483,7 +3488,7 @@
               })
                   .then((arrayBuffer) => {
                   const resizeIco = (blobUrl, newWidth, newHeight) => {
-                      return new Promise((resolve) => {
+                      return new Promise((resolve, reject) => {
                           const img = new Image();
                           const canvas = document.createElement("canvas");
                           const ctx = canvas.getContext("2d");
@@ -3501,6 +3506,9 @@
                                   const url = URL.createObjectURL(blob);
                                   resolve(url);
                               }, "image/x-icon");
+                          };
+                          img.onerror = () => {
+                              reject(new Error("Failed to load icon image"));
                           };
                           img.src = blobUrl;
                       });
@@ -3570,7 +3578,7 @@
                               totalRoundTime += frame.framDuration;
                           });
                           frameInfo.forEach((frame) => {
-                              styleContent += `${pos}% { cursor: url(${frameURLs[frame.frameIndex]}),${cursorType};}\n`;
+                              styleContent += `${pos}% { cursor: ${cursorRuleBuilder(frameURLs[frame.frameIndex], hotspotX, hotspotY, cursorType)}; }\n`;
                               pos += (frame.framDuration / totalRoundTime) * 100;
                           });
                           return styleContent;
@@ -3588,7 +3596,8 @@
                       this.LoadedANIs.push(ANIInfo);
                       topResolve(ANIInfo);
                   });
-              });
+              })
+                  .catch(topReject);
           });
       }
       setLoadedCursorToElement(elementSelector, loadedCursorPromise) {
@@ -3602,35 +3611,22 @@
               return style;
           });
       }
-      setLoadedCursorDefault(loadedCursorPromise) {
-          let defaultClass = "";
-          loadedCursorPromise.then(({ KeyFrameContent, aniURLRegexClassName, keyframesName, totalRoundTime, }) => {
-              const styleContent = `${KeyFrameContent}
-          .${aniURLRegexClassName} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }`;
-              const style = document.createElement("style");
-              style.innerHTML = styleContent;
-              document.head.appendChild(style);
-              defaultClass = aniURLRegexClassName;
-          });
-          return defaultClass;
-      }
-      setANICursor(elementSelector, aniURL, cursorType = "auto", width = 32, height = 32) {
-          const stylePromise = this.setLoadedCursorToElement(elementSelector, this.LoadANICursorPromise(aniURL, cursorType, width, height));
+      setANICursor(elementSelector, aniURL, cursorType = "auto", width = 32, height = 32, hotspotX, hotspotY) {
+          const stylePromise = this.setLoadedCursorToElement(elementSelector, this.LoadANICursorPromise(aniURL, cursorType, width, height, hotspotX, hotspotY));
           return this.createController(stylePromise);
       }
-      setANICursorWithGroupElement(elementSelectorGroup, aniURL, cursorType = "auto", width = 32, height = 32) {
+      setANICursorWithGroupElement(elementSelectorGroup, aniURL, cursorType = "auto", width = 32, height = 32, hotspotX, hotspotY) {
           const allElements = elementSelectorGroup.join(",");
-          return this.setANICursor(allElements, aniURL, cursorType, width, height);
+          return this.setANICursor(allElements, aniURL, cursorType, width, height, hotspotX, hotspotY);
       }
   }
   const instance = new ANIMouse();
-  const { LoadANICursorPromise, setLoadedCursorToElement, setLoadedCursorDefault, setANICursor, setANICursorWithGroupElement, } = instance;
+  const { LoadANICursorPromise, setLoadedCursorToElement, setANICursor, setANICursorWithGroupElement, } = instance;
 
   exports.LoadANICursorPromise = LoadANICursorPromise;
   exports.default = instance;
   exports.setANICursor = setANICursor;
   exports.setANICursorWithGroupElement = setANICursorWithGroupElement;
-  exports.setLoadedCursorDefault = setLoadedCursorDefault;
   exports.setLoadedCursorToElement = setLoadedCursorToElement;
 
   Object.defineProperty(exports, '__esModule', { value: true });
