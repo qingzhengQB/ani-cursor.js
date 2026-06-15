@@ -22,7 +22,7 @@ npm install ani-cursor.js
 
 For projects where npm cannot be conveniently used (such as WordPress, pure HTML projects, etc.), consider using a script tag in the document head to load the library.
 
-- Directly download the prebuilt file `dist/ani-cursor.umd.min.js` from the repository and place it in your project, then load it using the following script tag:
+- Directly download the prebuilt file [dist/ani-cursor.umd.min.js](https://github.com/qingzhengQB/ani-cursor.js/blob/master/dist/ani-cursor.umd.min.js) from the repository and place it in your project, then load it using the following script tag:
 
 ```html
 <script>

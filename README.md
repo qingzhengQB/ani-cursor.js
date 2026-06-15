@@ -21,7 +21,7 @@ npm install ani-cursor.js
 
 对于不能方便使用 npm 的项目（例如 Wordpress、纯原生 HTML 等情况），考虑在 DOM 头中使用 script 标签来引用该工具
 
-- 直接下载仓库中已经打包好的文件 dist/ani-cursor.umd.min.js 并放入项目中，使用以下 script 标签加载
+- 直接下载仓库中已经打包好的文件 [dist/ani-cursor.umd.min.js](https://github.com/qingzhengQB/ani-cursor.js/blob/master/dist/ani-cursor.umd.min.js) 并放入项目中，使用以下 script 标签加载
 
 ```html
 <script>
