@@ -1,5 +1,7 @@
 # ani-cursor.js
 
+[简体中文](https://github.com/qingzhengQB/ani-cursor.js/blob/master/README.md) | English
+
 A tool that allows you to use ANI files on websites to create animated mouse cursors. The project already supports TypeScript and provides complete type support.
 
 ~~Please give me a star~~

@@ -1,5 +1,7 @@
 # ani-cursor.js
 
+简体中文 | [English](https://github.com/qingzhengQB/ani-cursor.js/blob/master/README_EN.md)
+
 一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具。项目已支持 Typescript，可以提供完善的类型支持。
 
 ~~卑微求 star~~
