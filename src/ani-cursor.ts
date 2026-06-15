@@ -11,6 +11,17 @@ interface ANIInfo {
   aniURLRegexClassName: string;
   keyframesName: string;
   totalRoundTime: number;
+
+  frameURLs: string[]; // 解析出来的每一帧的blob数据URL，按照播放顺序排列
+  frameInfo: FrameInfo[]; // 每一帧的持续时间信息
+}
+
+export interface CursorController {
+  readonly ready: Promise<void>;
+
+  readonly destroyed: boolean;
+
+  destroy(): void;
 }
 
 // 原引用的 riff-file 包没有类型定义文件，这里补全类型定义
@@ -43,6 +54,42 @@ class ANIMouse {
     this.setANICursor = this.setANICursor.bind(this);
     this.setANICursorWithGroupElement =
       this.setANICursorWithGroupElement.bind(this);
+  }
+
+  private createController(
+    stylePromise: Promise<HTMLStyleElement>
+  ): CursorController {
+    let styleElement: HTMLStyleElement | null = null;
+    let destroyed = false;
+    const ready = stylePromise.then((style) => {
+      if (destroyed) {
+        style.remove();
+        return;
+      }
+
+      styleElement = style;
+    });
+
+    return {
+      get destroyed() {
+        return destroyed;
+      },
+
+      ready,
+
+      destroy() {
+        if (destroyed) {
+          return;
+        }
+
+        destroyed = true;
+
+        if (styleElement) {
+          styleElement.remove();
+          styleElement = null;
+        }
+      },
+    };
   }
 
   public LoadANICursorPromise(
@@ -202,6 +249,9 @@ class ANIMouse {
               aniURLRegexClassName,
               keyframesName,
               totalRoundTime,
+
+              frameURLs,
+              frameInfo,
             };
 
             this.LoadedANIs.push(ANIInfo);
@@ -214,8 +264,8 @@ class ANIMouse {
   public setLoadedCursorToElement(
     elementSelector: string,
     loadedCursorPromise: Promise<ANIInfo>
-  ): void {
-    loadedCursorPromise.then(
+  ): Promise<HTMLStyleElement> {
+    return loadedCursorPromise.then(
       ({
         KeyFrameContent,
         aniURLRegexClassName,
@@ -229,6 +279,7 @@ class ANIMouse {
         const style = document.createElement("style");
         style.innerHTML = styleContent;
         document.head.appendChild(style);
+        return style;
       }
     );
   }
@@ -263,11 +314,12 @@ class ANIMouse {
     cursorType: string = "auto",
     width: number = 32,
     height: number = 32
-  ): void {
-    this.setLoadedCursorToElement(
+  ): CursorController {
+    const stylePromise = this.setLoadedCursorToElement(
       elementSelector,
       this.LoadANICursorPromise(aniURL, cursorType, width, height)
     );
+    return this.createController(stylePromise);
   }
 
   public setANICursorWithGroupElement(
@@ -276,9 +328,9 @@ class ANIMouse {
     cursorType: string = "auto",
     width: number = 32,
     height: number = 32
-  ): void {
+  ): CursorController {
     const allElements = elementSelectorGroup.join(",");
-    this.setANICursor(allElements, aniURL, cursorType, width, height);
+    return this.setANICursor(allElements, aniURL, cursorType, width, height);
   }
 }
 

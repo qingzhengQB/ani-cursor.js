@@ -3432,6 +3432,33 @@ class ANIMouse {
         this.setANICursorWithGroupElement =
             this.setANICursorWithGroupElement.bind(this);
     }
+    createController(stylePromise) {
+        let styleElement = null;
+        let destroyed = false;
+        const ready = stylePromise.then((style) => {
+            if (destroyed) {
+                style.remove();
+                return;
+            }
+            styleElement = style;
+        });
+        return {
+            get destroyed() {
+                return destroyed;
+            },
+            ready,
+            destroy() {
+                if (destroyed) {
+                    return;
+                }
+                destroyed = true;
+                if (styleElement) {
+                    styleElement.remove();
+                    styleElement = null;
+                }
+            },
+        };
+    }
     LoadANICursorPromise(aniURL, cursorType = "auto", width = 32, height = 32) {
         return new Promise((topResolve) => {
             const aniURLRegexClassName = "cursor-animation-" + aniURL.replace(this.URLPathReg, "-");
@@ -3549,6 +3576,8 @@ class ANIMouse {
                         aniURLRegexClassName,
                         keyframesName,
                         totalRoundTime,
+                        frameURLs,
+                        frameInfo,
                     };
                     this.LoadedANIs.push(ANIInfo);
                     topResolve(ANIInfo);
@@ -3557,13 +3586,14 @@ class ANIMouse {
         });
     }
     setLoadedCursorToElement(elementSelector, loadedCursorPromise) {
-        loadedCursorPromise.then(({ KeyFrameContent, aniURLRegexClassName, keyframesName, totalRoundTime, }) => {
+        return loadedCursorPromise.then(({ KeyFrameContent, aniURLRegexClassName, keyframesName, totalRoundTime, }) => {
             const styleContent = `${KeyFrameContent}
           ${elementSelector} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }
           .${aniURLRegexClassName} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }`;
             const style = document.createElement("style");
             style.innerHTML = styleContent;
             document.head.appendChild(style);
+            return style;
         });
     }
     setLoadedCursorDefault(loadedCursorPromise) {
@@ -3579,11 +3609,12 @@ class ANIMouse {
         return defaultClass;
     }
     setANICursor(elementSelector, aniURL, cursorType = "auto", width = 32, height = 32) {
-        this.setLoadedCursorToElement(elementSelector, this.LoadANICursorPromise(aniURL, cursorType, width, height));
+        const stylePromise = this.setLoadedCursorToElement(elementSelector, this.LoadANICursorPromise(aniURL, cursorType, width, height));
+        return this.createController(stylePromise);
     }
     setANICursorWithGroupElement(elementSelectorGroup, aniURL, cursorType = "auto", width = 32, height = 32) {
         const allElements = elementSelectorGroup.join(",");
-        this.setANICursor(allElements, aniURL, cursorType, width, height);
+        return this.setANICursor(allElements, aniURL, cursorType, width, height);
     }
 }
 const instance = new ANIMouse();
