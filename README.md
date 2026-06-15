@@ -7,6 +7,8 @@
 
 挂载在 github 的预览: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
 
+一个用了这个库且效果还不错但不能保证随时能访问的博客：[预览](https://blog.qzqb.cc/)
+
 ## 引入库
 
 你可以使用 npm 将其安装到你的项目中
@@ -51,6 +53,8 @@ npm install ani-cursor.js
   document.head.appendChild(script);
 </script>
 ```
+
+引入更新的相关 issue：https://github.com/qingzhengQB/ani-cursor.js/issues/4
 
 ## 如何使用
 
