@@ -60,7 +60,7 @@ npm install ani-cursor.js
 
 ### setANICursor
 
-使用这个工具非常简单。你只需要使用函数 setANICursor 来将你的 ani 文件应用到你的网页中， 这个函数仅会修改 DOM 头，并不涉及 document 的 body 的 DOM 元素操作，所以你可以在任何位置使用它，不用担心你要设置的动态指针的元素是否已经挂载。
+使用这个工具非常简单。你只需要使用函数 `setANICursor` 来将你的 ani 文件应用到你的网页中， 这个函数仅会修改 DOM 头，并不涉及 document 的 body 的 DOM 元素操作，所以你可以在任何位置使用它，不用担心你要设置的动态指针的元素是否已经挂载。
 
 ```typescript
 function setANICursor(
@@ -74,7 +74,7 @@ function setANICursor(
 ): CursorController {}
 ```
 
-第一个参数 elementSelector 是你希望应用 ani 文件效果的标签的 CSS 选择器，第二个参数 aniURL 是你的 ani 文件的 URL，第三个参数 cursorType 是你希望在 ani 文件效果失效时的系统鼠标样式，第四、五个参数 width 和 height 为鼠标的宽和高，第六、七个参数 hotspotX 和 hotspotY 为鼠标热点位置（即鼠标实际点击生效的位置相对于鼠标图片的坐标偏移），只有 x 与 y 均被赋值后才生效。
+第一个参数 `elementSelector` 是你希望应用 ani 文件效果的标签的 CSS 选择器，第二个参数 `aniURL` 是你的 ani 文件的 URL，第三个参数 `cursorType` 是你希望在 ani 文件效果失效时的系统鼠标样式，第四、五个参数 `width` 和 `height` 为鼠标的宽和高，第六、七个参数 `hotspotX` 和 `hotspotY` 为鼠标热点位置（即鼠标实际点击生效的位置相对于鼠标图片的坐标偏移），只有 x 与 y 均被赋值后才生效。
 
 **注意**：鼠标的宽高不建议随意修改，对于浏览器的鼠标样式策略，当宽或高大于 32 时，鼠标样式在某些情况下会失效。以下为[MDN 说明](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/cursor#icon_size_limits)
 
@@ -89,7 +89,7 @@ setANICursor("body", "/your/ani/file/url.ani");
 
 ### setANICursorWithGroupElement
 
-有时我们希望在多个元素中使用 ani 文件，我们可以使用函数 setANICursorWithGroupElement 来使所有指定元素应用同一 ani 文件效果
+有时我们希望在多个元素中使用 ani 文件，我们可以使用函数 `setANICursorWithGroupElement` 来使所有指定元素应用同一 ani 文件效果
 
 ```typescript
 import { setANICursorWithGroupElement } from "ani-cursor.js";
@@ -111,7 +111,7 @@ setANICursorWithGroupElement(textAbleGroup, "/ani/TextSelect.ani");
 
 ### CursorController
 
-setANICursor() 与 setANICursorWithGroupElement() 会返回一个 CursorController，用于管理控制当前创建的动画鼠标样式
+`setANICursor()` 与 `setANICursorWithGroupElement()` 会返回一个 `CursorController`，用于管理控制当前创建的动画鼠标样式
 
 ```typescript
 interface CursorController {
@@ -183,7 +183,7 @@ interface ANIInfo {
 }
 ```
 
-LoadANICursorPromise 函数返回的 Promise 可以使用以下函数处理：
+`LoadANICursorPromise` 函数返回的 Promise 可以使用以下函数处理：
 
 ```typescript
 function setLoadedCursorToElement(
@@ -192,4 +192,4 @@ function setLoadedCursorToElement(
 ): Promise<HTMLStyleElement> {}
 ```
 
-该函数接收一个 CSS 选择器字符串和 LoadANICursorPromise 返回的 Promise，并将相关内容加载到 DOM 头中，并返回鼠标动画的 style 的引用。
+该函数接收一个 CSS 选择器字符串和 `LoadANICursorPromise` 返回的 Promise，并将相关内容加载到 DOM 头中，并返回鼠标动画的 style 的引用。
