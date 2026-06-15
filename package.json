@@ -1,11 +1,30 @@
 {
   "name": "ani-cursor.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A tool that allow you to use ani files in your website to create a animation cursor",
-  "main": "ani-cursor.js",
+  "main": "./dist/ani-cursor.umd.js",
+  "module": "./dist/ani-cursor.esm.js",
+  "types": "./dist/types/ani-cursor.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/ani-cursor.d.ts",
+      "import": "./dist/ani-cursor.esm.js",
+      "require": "./dist/ani-cursor.umd.js",
+      "default": "./dist/ani-cursor.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "webpack",
-    "start": "webpack serve --config webpack.config.js"
+    "test": "test.js",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap false --outDir dist/types --rootDir src --noEmit false",
+    "build:js": "rollup -c",
+    "build": "npm run clean && npm run build:types && npm run build:js"
   },
   "repository": {
     "type": "git",
@@ -25,5 +44,15 @@
   "dependencies": {
     "buffer": "^6.0.3",
     "riff-file": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.44.2",
+    "typescript": "^5.8.3",
+    "tslib": "^2.8.1"
   }
 }

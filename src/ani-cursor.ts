@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { RIFFFile } from "riff-file";
+import * as riffFile from "riff-file";
 
 interface FrameInfo {
   frameIndex: number;
@@ -11,7 +11,50 @@ interface ANIInfo {
   aniURLRegexClassName: string;
   keyframesName: string;
   totalRoundTime: number;
+
+  frameURLs: string[]; // 解析出来的每一帧的blob数据URL，按照ani文件内数据顺序排列
+  frameInfo: FrameInfo[]; // 每一帧的持续时间信息和数据索引，严格按照播放顺序排列，应该从这里取播放帧索引
 }
+
+export interface CursorController {
+  readonly ready: Promise<void>;
+
+  readonly destroyed: boolean;
+
+  destroy(): void;
+}
+
+// 原引用的 riff-file 包没有类型定义文件，这里补全类型定义
+interface RIFFFileShape {
+  setSignature(buffer: Buffer): void;
+  findChunk(chunkName: string): RIFFChunk | undefined;
+}
+
+interface RIFFFileModule {
+  RIFFFile: new () => RIFFFileShape;
+}
+
+interface RIFFChunk {
+  chunkData?: any;
+  chunkSize?: number;
+  subChunks?: Array<{
+    chunkData: any;
+    chunkSize: number;
+  }>;
+}
+
+const cursorRuleBuilder = (
+  url: string,
+  hotspotX?: number,
+  hotspotY?: number,
+  cursorType: string = "auto"
+) => {
+  if (hotspotX !== undefined && hotspotY !== undefined) {
+    return `url(${url}) ${hotspotX} ${hotspotY}, ${cursorType}`;
+  }
+
+  return `url(${url}), ${cursorType}`;
+};
 
 class ANIMouse {
   private LoadedANIs: ANIInfo[] = [];
@@ -20,19 +63,56 @@ class ANIMouse {
   constructor() {
     this.LoadANICursorPromise = this.LoadANICursorPromise.bind(this);
     this.setLoadedCursorToElement = this.setLoadedCursorToElement.bind(this);
-    this.setLoadedCursorDefault = this.setLoadedCursorDefault.bind(this);
     this.setANICursor = this.setANICursor.bind(this);
     this.setANICursorWithGroupElement =
       this.setANICursorWithGroupElement.bind(this);
+  }
+
+  private createController(
+    stylePromise: Promise<HTMLStyleElement>
+  ): CursorController {
+    let styleElement: HTMLStyleElement | null = null;
+    let destroyed = false;
+    const ready = stylePromise.then((style) => {
+      if (destroyed) {
+        style.remove();
+        return;
+      }
+
+      styleElement = style;
+    });
+
+    return {
+      get destroyed() {
+        return destroyed;
+      },
+
+      ready,
+
+      destroy() {
+        if (destroyed) {
+          return;
+        }
+
+        destroyed = true;
+
+        if (styleElement) {
+          styleElement.remove();
+          styleElement = null;
+        }
+      },
+    };
   }
 
   public LoadANICursorPromise(
     aniURL: string,
     cursorType: string = "auto",
     width: number = 32,
-    height: number = 32
+    height: number = 32,
+    hotspotX?: number,
+    hotspotY?: number
   ): Promise<ANIInfo> {
-    return new Promise((topResolve) => {
+    return new Promise((topResolve, topReject) => {
       const aniURLRegexClassName =
         "cursor-animation-" + aniURL.replace(this.URLPathReg, "-");
 
@@ -56,7 +136,7 @@ class ANIMouse {
             newWidth: number,
             newHeight: number
           ): Promise<string> => {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
               const img = new Image();
               const canvas = document.createElement("canvas");
               const ctx = canvas.getContext("2d");
@@ -77,15 +157,19 @@ class ANIMouse {
                   resolve(url);
                 }, "image/x-icon");
               };
+              img.onerror = () => {
+                reject(new Error("Failed to load icon image"));
+              };
               img.src = blobUrl;
             });
           };
 
           const buffer = Buffer.from(arrayBuffer);
+          const { RIFFFile } = riffFile as RIFFFileModule;
           const riff = new RIFFFile();
           riff.setSignature(buffer);
-
-          const startIndex = riff.findChunk("anih").chunkData.start;
+          const anihChunk = riff.findChunk("anih") as RIFFChunk;
+          const startIndex = anihChunk.chunkData!.start;
           const view = new DataView(arrayBuffer);
 
           const frameNum = view.getUint32(startIndex + 1 * 4, true);
@@ -95,11 +179,13 @@ class ANIMouse {
           const frameInfo: FrameInfo[] = [];
           const frameURLs: string[] = [];
 
-          if (riff.findChunk("seq")) {
-            const seqStart = riff.findChunk("seq").chunkData.start;
+          const seqChunk = riff.findChunk("seq") as RIFFChunk;
+          if (seqChunk) {
+            const seqStart = seqChunk.chunkData!.start;
 
-            if (riff.findChunk("rate")) {
-              const rateStart = riff.findChunk("rate").chunkData.start;
+            const rateChunk = riff.findChunk("rate") as RIFFChunk;
+            if (rateChunk) {
+              const rateStart = rateChunk.chunkData!.start;
               for (let i = 0; i < cursorPlayOrderNum; i++) {
                 frameInfo.push({
                   frameIndex: view.getUint32(seqStart + i * 4, true),
@@ -125,14 +211,15 @@ class ANIMouse {
           }
 
           const ResizeIconGroup: Promise<{ index: number; url: string }>[] = [];
+          const listChunk = riff.findChunk("LIST") as RIFFChunk;
           for (let i = 0; i < cursorPlayOrderNum; i++) {
             const icourl = URL.createObjectURL(
               new Blob(
                 [
                   new Uint8Array(
                     arrayBuffer,
-                    riff.findChunk("LIST").subChunks[i].chunkData.start,
-                    riff.findChunk("LIST").subChunks[i].chunkSize
+                    listChunk.subChunks![i].chunkData.start,
+                    listChunk.subChunks![i].chunkSize
                   ),
                 ],
                 { type: "image/x-icon" }
@@ -162,9 +249,12 @@ class ANIMouse {
               });
 
               frameInfo.forEach((frame) => {
-                styleContent += `${pos}% { cursor: url(${
-                  frameURLs[frame.frameIndex]
-                }),${cursorType};}\n`;
+                styleContent += `${pos}% { cursor: ${cursorRuleBuilder(
+                  frameURLs[frame.frameIndex],
+                  hotspotX,
+                  hotspotY,
+                  cursorType
+                )}; }\n`;
                 pos += (frame.framDuration / totalRoundTime) * 100;
               });
 
@@ -179,20 +269,24 @@ class ANIMouse {
               aniURLRegexClassName,
               keyframesName,
               totalRoundTime,
+
+              frameURLs,
+              frameInfo,
             };
 
             this.LoadedANIs.push(ANIInfo);
             topResolve(ANIInfo);
           });
-        });
+        })
+        .catch(topReject);
     });
   }
 
   public setLoadedCursorToElement(
     elementSelector: string,
     loadedCursorPromise: Promise<ANIInfo>
-  ): void {
-    loadedCursorPromise.then(
+  ): Promise<HTMLStyleElement> {
+    return loadedCursorPromise.then(
       ({
         KeyFrameContent,
         aniURLRegexClassName,
@@ -206,32 +300,9 @@ class ANIMouse {
         const style = document.createElement("style");
         style.innerHTML = styleContent;
         document.head.appendChild(style);
+        return style;
       }
     );
-  }
-
-  public setLoadedCursorDefault(loadedCursorPromise: Promise<ANIInfo>): string {
-    let defaultClass = "";
-
-    loadedCursorPromise.then(
-      ({
-        KeyFrameContent,
-        aniURLRegexClassName,
-        keyframesName,
-        totalRoundTime,
-      }) => {
-        const styleContent = `${KeyFrameContent}
-          .${aniURLRegexClassName} { animation: ${keyframesName} ${totalRoundTime}ms step-end infinite; }`;
-
-        const style = document.createElement("style");
-        style.innerHTML = styleContent;
-        document.head.appendChild(style);
-
-        defaultClass = aniURLRegexClassName;
-      }
-    );
-
-    return defaultClass;
   }
 
   public setANICursor(
@@ -239,12 +310,22 @@ class ANIMouse {
     aniURL: string,
     cursorType: string = "auto",
     width: number = 32,
-    height: number = 32
-  ): void {
-    this.setLoadedCursorToElement(
+    height: number = 32,
+    hotspotX?: number,
+    hotspotY?: number
+  ): CursorController {
+    const stylePromise = this.setLoadedCursorToElement(
       elementSelector,
-      this.LoadANICursorPromise(aniURL, cursorType, width, height)
+      this.LoadANICursorPromise(
+        aniURL,
+        cursorType,
+        width,
+        height,
+        hotspotX,
+        hotspotY
+      )
     );
+    return this.createController(stylePromise);
   }
 
   public setANICursorWithGroupElement(
@@ -252,10 +333,20 @@ class ANIMouse {
     aniURL: string,
     cursorType: string = "auto",
     width: number = 32,
-    height: number = 32
-  ): void {
+    height: number = 32,
+    hotspotX?: number,
+    hotspotY?: number
+  ): CursorController {
     const allElements = elementSelectorGroup.join(",");
-    this.setANICursor(allElements, aniURL, cursorType, width, height);
+    return this.setANICursor(
+      allElements,
+      aniURL,
+      cursorType,
+      width,
+      height,
+      hotspotX,
+      hotspotY
+    );
   }
 }
 
@@ -264,7 +355,6 @@ const instance = new ANIMouse();
 export const {
   LoadANICursorPromise,
   setLoadedCursorToElement,
-  setLoadedCursorDefault,
   setANICursor,
   setANICursorWithGroupElement,
 } = instance;

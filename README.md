@@ -1,62 +1,93 @@
 # ani-cursor.js
 
-一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具 / A tool that allows you to use ani files on your website to create an dynamic animation cursor.
+一个能让你在网站中使用 ani 文件以创建动画鼠标指针的工具。项目已支持 Typescript，可以提供完善的类型支持。
 
 ~~卑微求 star~~
 ![Picture](https://raw.githubusercontent.com/qingzhengQB/ani-cursor.js/refs/heads/main/ani_cover.gif)
 
-极简预览 / Preview: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
+挂载在 github 的预览: [预览](https://qingzhengqb.github.io/ani-cursor-preview/)
 
-## 引入库 / Getting Started
+## 引入库
 
-你可以使用 npm 将其安装到你的项目中 / You can use npm to install it into your project.
+你可以使用 npm 将其安装到你的项目中
 
 ```
 npm install ani-cursor.js
 ```
 
-或者在 DOM 头中使用 script 标签来使用该工具 / Or, just use a script tag in the DOM head to use the tool.
+对于不能方便使用 npm 的项目（例如 Wordpress、纯原生 HTML 等情况），考虑在 DOM 头中使用 script 标签来引用该工具
 
-- 通过 CDN / Use CDN
-
-```html
-<script src="
-https://cdn.jsdelivr.net/npm/ani-cursor.js@1.0.0/dist/ani-cursor.bundle.min.js
-"></script>
-```
-
-- 直接下载 dist/ani-cursor.bundle.js 并放入项目中，将 `src` 属性改为下载文件在项目中的路径 / Directly download dist/ani - cursor.bundle.js and place it in the project. Then change the `src` attribute to the path of the downloaded file in the project.
+- 直接下载仓库中已经打包好的文件 dist/ani-cursor.umd.min.js 并放入项目中，使用以下 script 标签加载
 
 ```html
-<script src="dist/ani-cursor.bundle.js"></script>
+<script>
+  const script = document.createElement("script");
+  script.src = "path/to/ani-cursor.umd.min.js";
+  script.onload = () => {
+    // 从 window 中获取 AniCursor 实例提供的函数
+    const { setANICursor, setANICursorWithGroupElement } =
+      window.AniCursor || window;
+
+    setANICursor("html", "/ani/main.ani");
+  };
+  document.head.appendChild(script);
+</script>
 ```
 
-## 如何使用 / How to Use
+- 通过 CDN
 
-使用这个工具非常简单。你只需要使用函数 setANICursor 来将你的 ani 文件应用到你的网页中， 这个函数仅会修改 DOM 头，并不涉及 document 的 body 的 DOM 元素操作，所以你可以在任何位置使用它，不用担心你要设置的动态指针的元素是否已经挂载。/ There are several easy ways to use your ani files. You can use the function setANICursor to apply your ani file, This function only modifies the DOM head and does not involve DOM element manipulation of document's body, so you can use it anywhere.
+```html
+<script>
+  const script = document.createElement("script");
+  script.src =
+    "https://cdn.jsdelivr.net/npm/ani-cursor.js@1.0.3/dist/ani-cursor.umd.min.js";
+  script.onload = () => {
+    // 从 window 中获取 AniCursor 实例提供的函数
+    const { setANICursor, setANICursorWithGroupElement } =
+      window.AniCursor || window;
 
-```javascript
+    setANICursor("html", "/ani/main.ani");
+  };
+  document.head.appendChild(script);
+</script>
+```
+
+## 如何使用
+
+### setANICursor
+
+使用这个工具非常简单。你只需要使用函数 setANICursor 来将你的 ani 文件应用到你的网页中， 这个函数仅会修改 DOM 头，并不涉及 document 的 body 的 DOM 元素操作，所以你可以在任何位置使用它，不用担心你要设置的动态指针的元素是否已经挂载。
+
+```typescript
 function setANICursor(
-  elementSelector,
-  aniURL,
-  cursorType = "auto",
-  width = 32,
-  height = 32
-) {}
+  elementSelector: string,
+  aniURL: string,
+  cursorType: string = "auto",
+  width: number = 32,
+  height: number = 32,
+  hotspotX?: number,
+  hotspotY?: number
+): CursorController {}
 ```
 
-第一个参数是你希望应用 ani 文件效果的标签的 CSS 选择器，第二个参数是你的 ani 文件的 URL，第三个参数是你希望在 ani 文件效果失效时的系统鼠标样式，第四、五个参数为鼠标的宽和高。**注意**，由于一些未知的原因，当鼠标的宽和高大于 32 时，如果鼠标仅部分图案而非指针位置移动到指定元素外时，鼠标样式会立即失效，因此不建议修改 / The first parameter is the CSS selector of the element where you want the ani file to take effect. The second parameter is the URL of your ani file. The third parameter is the mouse style you want when the ani file effect is not active. The fourth and fifth parameters are the width and height of the cursor. **Note that**, for some unknown reasons, when the width and height of the cursor exceed 32, the cursor style will immediately become ineffective if only part of the cursor's graphic (not the exactly pointer) moves outside the specified element, so it is not recommended to change it.
+第一个参数 elementSelector 是你希望应用 ani 文件效果的标签的 CSS 选择器，第二个参数 aniURL 是你的 ani 文件的 URL，第三个参数 cursorType 是你希望在 ani 文件效果失效时的系统鼠标样式，第四、五个参数 width 和 height 为鼠标的宽和高，第六、七个参数 hotspotX 和 hotspotY 为鼠标热点位置（即鼠标实际点击生效的位置相对于鼠标图片的坐标偏移），只有 x 与 y 均被赋值后才生效。
 
-这是一个使用示例：/ A usage example:
+**注意**：鼠标的宽高不建议随意修改，对于浏览器的鼠标样式策略，当宽或高大于 32 时，鼠标样式在某些情况下会失效。以下为[MDN 说明](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/cursor#icon_size_limits)
 
-```javascript
+> While the specification does not limit the image size, user agents commonly restrict them to avoid potential misuse. For example, on Firefox and Chromium cursor images are restricted to 128x128 pixels by default, but it is recommended to limit the cursor image size to 32x32 pixels. Cursor changes using images that are larger than the user-agent maximum supported size will generally just be ignored.
+
+这是一个使用示例：
+
+```typescript
 import { setANICursor } from "ani-cursor.js";
 setANICursor("body", "/your/ani/file/url.ani");
 ```
 
-有时我们希望在多个元素中使用 ani 文件，我们可以使用函数 setANICursorWithGroupElement 来使所有指定元素应用同一 ani 文件效果 / Sometimes we want to use the ani file across multiple elements. We can use the function setANICursorWithGroupElement to apply the same ani file effect to all specified elements, and related CSS can be concentrated in a single style block.
+### setANICursorWithGroupElement
 
-```javascript
+有时我们希望在多个元素中使用 ani 文件，我们可以使用函数 setANICursorWithGroupElement 来使所有指定元素应用同一 ani 文件效果
+
+```typescript
 import { setANICursorWithGroupElement } from "ani-cursor.js";
 let textAbleGroup = [
   "input",
@@ -74,42 +105,87 @@ let textAbleGroup = [
 setANICursorWithGroupElement(textAbleGroup, "/ani/TextSelect.ani");
 ```
 
+### CursorController
+
+setANICursor() 与 setANICursorWithGroupElement() 会返回一个 CursorController，用于管理控制当前创建的动画鼠标样式
+
+```typescript
+interface CursorController {
+  readonly ready: Promise<void>;
+  readonly destroyed: boolean;
+  destroy(): void;
+}
+```
+
+`ready` 表示鼠标动画样式是否已经完成加载并注入到页面
+
+```typescript
+const controller = setANICursor("body", "/your/ani/file/url.ani");
+
+controller.ready.then(() => {
+  console.log("Cursor loaded");
+});
+```
+
+`destroyed` 表示当前控制器是否已被销毁
+
+```typescript
+const controller = setANICursor("body", "/your/ani/file/url.ani");
+
+console.log(controller.destroyed);
+// false
+
+controller.destroy();
+console.log(controller.destroyed);
+// true
+```
+
+`destroy()` 移除当前控制器创建的动画样式。即使资源尚未加载完成，也可以立即调用 `destroy()`
+
+```typescript
+const controller = setANICursor("body", "/your/ani/file/url.ani");
+
+controller.destroy();
+```
+
 ### Vue 使用例
 
 预览网页由 vue 编写，网页仓库的 markdown 有使用例：https://github.com/qingzhengQB/ani-cursor-preview
 
-## 更多 API / More APIs
+## 更多 API
 
-```javascript
+```typescript
 function LoadANICursorPromise(
-  aniURL,
-  cursorType = "auto",
-  width = 32,
-  height = 32
-) {}
+  aniURL: string,
+  cursorType: string = "auto",
+  width: number = 32,
+  height: number = 32,
+  hotspotX?: number,
+  hotspotY?: number
+): Promise<ANIInfo> {}
 ```
 
-你可以使用它来加载一个 ani 文件。运行该函数后，会返回一个等待 then 运行的 Promise，并为 then 中的 resolve 变量赋值为一个包含相关加载信息的对象 / You can use it to load an ani file. After running this function, it will return a Promise that waits for then to be executed, and assigns a value to the resolve variable in then as an object containing relevant loading information.
+你可以使用它来加载一个 ani 文件。运行该函数后，会返回一个等待 then 运行的 Promise，并为 then 中的 resolve 变量赋值为一个包含相关加载信息的对象。你也可以从返回值中提取每一帧的图像 blob 数据链接和帧顺序、持续时间等详细信息。
 
-```
-{
-  KeyFrameContent, //由加载的ani文件定义的动画的内容 / The content of the animation defined by the loaded ani file
-  aniURLRegexClassName, //在生成动画时，会根据ani文件的URL生成一个对应的类名，加载完时这个类名没有任何内容 / When generating animations, a corresponding class name will be generated based on the URL of the ani file, and this class name will have no content when loaded
-  keyframesName, // 定义的动画的名称 / The name of the defined animation
-  totalRoundTime, // 动画一次循环所需时间 / The time required for one cycle of animation
+```typescript
+interface ANIInfo {
+  KeyFrameContent; //由加载的ani文件定义的动画的内容
+  aniURLRegexClassName; //在生成动画时，会根据ani文件的URL生成一个对应的类名，加载完时这个类名没有任何内容
+  keyframesName; // 定义的动画的名称
+  totalRoundTime; // 动画一次循环所需时间
+
+  frameURLs: string[]; // 解析出来的每一帧的blob数据URL，按照ani文件内数据顺序排列
+  frameInfo: FrameInfo[]; // 每一帧的持续时间信息和数据索引，严格按照播放顺序排列，应该从这里取播放帧索引
 }
 ```
 
-返回的 Promise 可以使用以下函数处理：/The returned Promise can be handled using the following functions:
+LoadANICursorPromise 函数返回的 Promise 可以使用以下函数处理：
 
-```javascript
-function setLoadedCursorToElement(elementSelector, loadedCursorPromise) {}
+```typescript
+function setLoadedCursorToElement(
+  elementSelector: string,
+  loadedCursorPromise: Promise<ANIInfo>
+): Promise<HTMLStyleElement> {}
 ```
 
-该函数接收一个 CSS 选择器字符串和 LoadANICursorPromise 返回的 Promise，并将相关内容加载到 DOM 头中。除此之外，还有其他函数能够处理返回的 Promise / This function takes a CSS selector string and the Promise returned by LoadANICursorPromise, and loads the relevant content into the DOM head. In addition, there are other functions that can handle the returned Promise:
-
-```javascript
-function setLoadedCursorDefault(loadedCursorPromise) {}
-```
-
-该函数仅会将动画设置到根据 ani 文件 URL 生成的类名下，并返回对应类名，不会做其他额外操作，方便实现手动选择元素并挂载返回的类名来实现更加定制化的鼠标动画挂载 / This function only applies the animation to a class name generated from the ani file URL and returns the corresponding class name. It does not perform any additional operations, making it convenient to manually select elements and attach the returned class name for more customized mouse animation mounting.
+该函数接收一个 CSS 选择器字符串和 LoadANICursorPromise 返回的 Promise，并将相关内容加载到 DOM 头中，并返回鼠标动画的 style 的引用。
